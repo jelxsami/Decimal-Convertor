@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number System Converter</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #502c44;
+        }
+        
+        .input-section {
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .input-label {
+            flex: 1;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-field {
+            flex: 2;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .convert-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .convert-btn:hover {
+            background-color: #41b929;
+        }
+        
+        .results-section {
+            margin-bottom: 25px;
+        }
+        
+        .result-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .result-label {
+            flex: 1;
+            font-weight: bold;
+        }
+        
+        .result-value {
+            flex: 2;
+            font-family: monospace;
+            font-size: 16px;
+            word-break: break-all;
+        }
+        
+        .history-section h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        
+        .history-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-family: monospace;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .clear-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .clear-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        @media (max-width: 480px) {
+            .input-group, .result-row {
+                flex-direction: column;
+            }
+            
+            .input-label, .result-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Decimal Converter</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label class="input-label" for="decimal-input">Decimal:</label>
+                <input type="number" id="decimal-input" class="input-field" placeholder="Enter a decimal number" value="34567">
+            </div>
+            <button id="convert-btn" class="convert-btn">Convert</button>
+        </div>
+        
+        <div class="results-section">
+            <div class="result-row">
+                <div class="result-label">Octal:</div>
+                <div id="octal-result" class="result-value">-</div>
+            </div>
+            <div class="result-row">
+                <div class="result-label">Binary:</div>
+                <div id="binary-result" class="result-value">-</div>
+            </div>
+            <div class="result-row">
+                <div class="result-label">Hexadecimal:</div>
+                <div id="hex-result" class="result-value">-</div>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <h2>Conversion History</h2>
+            <div id="history-list" class="history-list">
+                <!-- History items will be added here -->
+            </div>
+            <button id="clear-btn" class="clear-btn">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const decimalInput = document.getElementById('decimal-input');
+            const convertBtn = document.getElementById('convert-btn');
+            const octalResult = document.getElementById('octal-result');
+            const binaryResult = document.getElementById('binary-result');
+            const hexResult = document.getElementById('hex-result');
+            const historyList = document.getElementById('history-list');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            // Load conversion history from localStorage
+            let conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
+            
+            // Display conversion history
+            function displayHistory() {
+                historyList.innerHTML = '';
+                conversionHistory.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.textContent = `Decimal: ${item.decimal} → Octal: ${item.octal}, Binary: ${item.binary}, Hex: ${item.hex}`;
+                    historyList.appendChild(historyItem);
+                });
+            }
+            
+            // Convert decimal to other bases
+            function convertDecimal() {
+                const decimalValue = decimalInput.value.trim();
+                
+                if (decimalValue === '') {
+                    alert('Please enter a decimal number');
+                    return;
+                }
+                
+                const decimalNum = parseInt(decimalValue, 10);
+                
+                if (isNaN(decimalNum)) {
+                    alert('Please enter a valid decimal number');
+                    return;
+                }
+                
+                // Perform conversions
+                const octal = decimalNum.toString(8);
+                const binary = decimalNum.toString(2);
+                const hex = decimalNum.toString(16).toUpperCase();
+                
+                // Display results
+                octalResult.textContent = octal;
+                binaryResult.textContent = binary;
+                hexResult.textContent = hex;
+                
+                // Add to history
+                const conversion = {
+                    decimal: decimalNum,
+                    octal: octal,
+                    binary: binary,
+                    hex: hex,
+                    timestamp: new Date().toLocaleString()
+                };
+                
+                conversionHistory.unshift(conversion); // Add to beginning of array
+                
+                // Keep only the last 10 conversions
+                if (conversionHistory.length > 10) {
+                    conversionHistory = conversionHistory.slice(0, 10);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('conversionHistory', JSON.stringify(conversionHistory));
+                
+                // Update history display
+                displayHistory();
+            }
+            
+            // Clear conversion history
+            function clearHistory() {
+                conversionHistory = [];
+                localStorage.removeItem('conversionHistory');
+                displayHistory();
+            }
+            
+            // Event listeners
+            convertBtn.addEventListener('click', convertDecimal);
+            clearBtn.addEventListener('click', clearHistory);
+            
+            // Allow conversion on Enter key press
+            decimalInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    convertDecimal();
+                }
+            });
+            
+            // Initial display of history
+            displayHistory();
+            
+            // Convert the initial value (34567)
+            convertDecimal();
+        });
+    </script>
+</body>
+</html>
+```
