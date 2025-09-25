@@ -1,2 +1,2 @@
-# index.html
+# DECIMAL CONVERTOR
 Decimal Convertor
